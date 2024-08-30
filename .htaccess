@@ -1,0 +1,12 @@
+# Enable URL rewriting
+RewriteEngine On
+RewriteBase /impactmindz/
+
+# If the requested filename does not exist as a file or directory, rewrite to index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L]
+
+# PHP settings (if your server configuration allows this)
+# Uncomment the line below to set the timezone (if allowed)
+# php_value date.timezone "America/New_York" # Replace with your desired timezone

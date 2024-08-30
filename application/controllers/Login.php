@@ -25,35 +25,46 @@ class Login extends CI_Controller
         if ($this->form_validation->run() == false) {
             $this->load->view('login');
         } else {
-            $email = $this->input->post('email');
-            $password = $this->input->post('password');
-            $uresult = $this->Login_Model->checkLogin($email, $password);
+            $ip_address = $_SERVER['REMOTE_ADDR'];
+            $allowed_ip_range = '192.168.1.0/24'; // your WiFi network IP address range
+            $allowed_ssid = 'Impactmindz'; // your WiFi network SSID
+            $allowed_mac_address = 'F0-A7-31-A0-D8-69'; // your WiFi network MAC address
 
-            if ($uresult) {
-                // Store user data in session
-                $this->session->set_userdata('user_id', $uresult->user_id);
-                $this->session->set_userdata('username', $uresult->username);
-                $this->session->set_userdata('email', $uresult->email);
-                $this->session->set_userdata('role_id', $uresult->role_id);
+            if (ip_in_range($ip_address, $allowed_ip_range) && get_ssid() == $allowed_ssid && get_mac_address() == $allowed_mac_address) {
+                // user is connected to the allowed WiFi network
+                $email = $this->input->post('email');
+                $password = $this->input->post('password');
+                $uresult = $this->Login_Model->checkLogin($email, $password);
 
-                // Role-based redirection
-                if ($uresult->role_id == 1) {
-                    redirect(base_url('Dashboard'));
-                } else if ($uresult->role_id == 2) {
-                    redirect(base_url('Dashboard'));
-                } else if ($uresult->role_id == 3) {
-                    redirect(base_url('Dashboard'));
+                if ($uresult) {
+                    // Store user data in session
+                    $this->session->set_userdata('user_id', $uresult->user_id);
+                    $this->session->set_userdata('username', $uresult->username);
+                    $this->session->set_userdata('email', $uresult->email);
+                    $this->session->set_userdata('role_id', $uresult->role_id);
+
+                    // Role-based redirection
+                    if ($uresult->role_id == 1) {
+                        redirect(base_url('Dashboard'));
+                    } else if ($uresult->role_id == 2) {
+                        redirect(base_url('Dashboard'));
+                    } else if ($uresult->role_id == 3) {
+                        redirect(base_url('Dashboard'));
+                    } else {
+                        // Default redirection if role doesn't match
+                        redirect(base_url('Dashboard'));
+                    }
                 } else {
-                    // Default redirection if role doesn't match
-                    redirect(base_url('Dashboard'));
+                    $this->session->set_flashdata('msg', '<div class="alert alert-danger text-center">Email ID and Password are Invalid!</div>');
+                    redirect('Login');
                 }
             } else {
-                $this->session->set_flashdata('msg', '<div class="alert alert-danger text-center">Email ID and Password are Invalid!</div>');
-                redirect('Login');
+                // user is not connected to the allowed WiFi network
+                $this->session->set_flashdata('error', 'You are not connected to the allowed WiFi network');
+                redirect('login'); // redirect to login page
             }
         }
     }
-
 
     // user logout
     public function logout()

@@ -1,49 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EMP | Event Calendar</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <title>Event Calendar</title>
+    <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css' rel='stylesheet' />
+    <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.print.min.css' rel='stylesheet'
+        media='print' />
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js'></script>
     <style>
-        <style>
-    body {
-        font-family: 'Roboto', sans-serif;
-        background-color: #f4f7f6;
-        margin: 0;
-        padding: 20px;
-    }
-    .container {
-        max-width: 800px;
-        margin: auto;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed; /* Ensures columns have consistent width */
-    }
-    th, td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
-        overflow: hidden; /* Prevents content overflow */
-    }
-    th {
-        background-color: #f2f2f2;
-    }
-    .event {
-        background-color: #d4edda;
-        color: #155724;
-        padding: 5px;
-        border-radius: 4px;
-    }
-    .add-event {
-        margin: 20px 0;
-    }
-</style>
+        .fc-event {
+            cursor: pointer;
+        }
 
+        .event-icons {
+            float: right;
+            margin-left: 5px;
+        }
+
+        #calendar .fc-row {
+            height: auto !important;
+        }
+
+        #calendar .fc-scroller {
+            height: auto !important;
+        }
     </style>
 </head>
+
 <body class="sb-nav-fixed">
     <?php include APPPATH . 'views/include/header.php'; ?>
     <div id="layoutSidenav">
@@ -53,35 +40,153 @@
         <div id="layoutSidenav_content">
             <main>
                 <div class="container">
-                    <h1>Event Calendar</h1>
-                    <div class="add-event">
-                        <a href="<?php echo base_url('events/add'); ?>">Add New Event</a>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Event Title</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($events as $event): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($event['start']); ?></td>
-                                    <td><?php echo htmlspecialchars($event['title']); ?></td>
-                                    <td>
-                                        <a href="<?php echo base_url('events/edit/' . $event['id']); ?>">Edit</a> |
-                                        <a href="<?php echo base_url('events/delete/' . $event['id']); ?>" onclick="return confirm('Are you sure?');">Delete</a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                    <h1>EVENT MANAGEMENT</h1>
+                    <div id="calendar"></div>
                 </div>
             </main>
             <?php include APPPATH . 'views/include/footer.php'; ?>
         </div>
     </div>
+
+    <!-- Modal for adding/editing events -->
+    <div id="eventModal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add/Edit Event</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="eventForm">
+                        <input type="hidden" id="eventId">
+                        <div class="form-group">
+                            <label for="eventTitle">Event Title</label>
+                            <input type="text" class="form-control" id="eventTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="eventDate">Event Date</label>
+                            <input type="date" class="form-control" id="eventDate" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="closeModal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveEvent">Save Event</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#calendar').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,agendaWeek,agendaDay'
+                },
+                editable: true,
+                eventLimit: true,
+                events: <?php echo json_encode($events); ?>,
+                dayClick: function (date) {
+                    openEventModal(null, date);
+                },
+                eventClick: function (event) {
+                    openEventModal(event);
+                },
+                eventRender: function (event, element) {
+                    element.find('.fc-content').append(
+                        "<span class='event-icons'>" +
+                        "<i class='fa fa-edit' onclick='editEvent(" + event.id + ")'></i> " +
+                        "<i class='fa fa-trash' onclick='deleteEvent(" + event.id + ")'></i>" +
+                        "</span>"
+                    );
+                }
+            });
+
+            // Close button functionality
+            $('#closeModal, .close').click(function () {
+                $('#eventModal').modal('hide');
+            });
+
+            // Save Event button functionality
+            $('#saveEvent').click(function () {
+                var eventData = {
+                    id: $('#eventId').val(),
+                    title: $('#eventTitle').val(),
+                    date: $('#eventDate').val()  // Changed 'start' to 'date' to match your controller
+                };
+
+                var url = eventData.id ?
+                    '<?php echo base_url('events/edit/'); ?>' + eventData.id :
+                    '<?php echo base_url('events/add'); ?>';
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: eventData,
+                    success: function (response) {
+                        $('#eventModal').modal('hide');
+                        $('#calendar').fullCalendar('refetchEvents');
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error saving event:", error);
+                        alert("There was an error saving the event. Please try again.");
+                    }
+                });
+            });
+
+            // Prevent form submission on enter key
+            $('#eventForm').on('submit', function (e) {
+                e.preventDefault();
+                $('#saveEvent').click();
+            });
+        });
+
+        function openEventModal(event, date) {
+            if (event) {
+                $('#eventId').val(event.id);
+                $('#eventTitle').val(event.title);
+                $('#eventDate').val(moment(event.start).format('YYYY-MM-DD'));
+            } else {
+                $('#eventId').val('');
+                $('#eventTitle').val('');
+                $('#eventDate').val(date.format('YYYY-MM-DD'));
+            }
+            $('#eventModal').modal('show');
+        }
+
+        function editEvent(eventId) {
+            var event = $('#calendar').fullCalendar('clientEvents', eventId)[0];
+            openEventModal(event);
+        }
+
+        function deleteEvent(eventId, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            if (confirm('Are you sure you want to delete this event?')) {
+                $.ajax({
+                    url: '<?php echo base_url('events/delete/'); ?>' + eventId,
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.success) {
+                            $('#calendar').fullCalendar('removeEvents', eventId);
+                        } else {
+                            alert("There was an error deleting the event: " + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error deleting event:", error);
+                        alert("There was an error deleting the event. Please try again.");
+                    }
+                });
+            }
+        }
+    </script>
 </body>
+
 </html>

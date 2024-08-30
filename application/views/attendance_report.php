@@ -100,7 +100,7 @@
                         </div>
 
                         <div class="col-md-3" id="tickmark">
-                            <label for="show_only_present">Show only users with attendance</label>
+                            <label for="show_only_present">Show Employees with attendance</label>
                             <input type="checkbox" name="show_only_present" id="show_only_present" value="1" <?php echo $show_only_present ? 'checked' : ''; ?>>
                         </div>
                         <div class="col-md-2" id="tickmark1">

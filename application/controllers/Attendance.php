@@ -15,6 +15,7 @@ class Attendance extends CI_Controller
 
         // Load model here
         $this->load->model('Attendance_model');
+        $this->load->model('User_model');
         $this->load->helper(array('form', 'url'));
         $this->load->library('form_validation');
 
@@ -47,7 +48,7 @@ class Attendance extends CI_Controller
             } else {
                 $this->session->set_flashdata('error', 'You are outside the punch-in time window. You have been marked as absent.');
             }
-        }elseif ($action == 'punch_out') {
+        } elseif ($action == 'punch_out') {
             $result = $this->Attendance_model->punch_out($user_id);
             if ($result) {
                 $this->session->set_flashdata('success', 'Punched Out successfully!');
@@ -111,20 +112,27 @@ class Attendance extends CI_Controller
     }
 
 
-    
-// attendance report page
+
+    // attendance report page
     public function attendance_report()
-{
-    $year = $this->input->post('year') ?? date('Y');
-    $month = $this->input->post('month') ?? date('m');
-    $show_only_present = $this->input->post('show_only_present') ?? false;
+    {
+        $year = $this->input->post('year') ?? date('Y');
+        $month = $this->input->post('month') ?? date('m');
+        $show_only_present = $this->input->post('show_only_present') ?? false;
+        $user_id = $this->input->post('user_id'); // New
 
-    $this->load->model('Attendance_model');
-    $data = $this->Attendance_model->get_users_with_attendance($year, $month, $show_only_present);
 
-    $data['show_only_present'] = $show_only_present;
-    $this->load->view('attendance_report', $data);
-}
+        // Fetch all users for the dropdown
+        $users_list = $this->User_model->get_all_users(); // Fetch all users, modify this to your method
+
+        
+        $data = $this->Attendance_model->get_users_with_attendance($year, $month, $show_only_present, $user_id);
+
+        $data['show_only_present'] = $show_only_present;
+        $data['user_id'] = $user_id;
+        $data['users_list'] = $users_list; // Add users list to the data array
+        $this->load->view('attendance_report', $data);
+    }
 
 
 

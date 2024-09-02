@@ -1,65 +1,3 @@
-<style>
-    /* Container styling */
-    .container {
-        margin: 20px;
-    }
-
-    /* Table styling */
-    .table {
-        border-collapse: collapse;
-        width: 100%;
-        text-align: center;
-    }
-
-    .table thead th {
-        background-color: #2c3e50;
-        color: white;
-        padding: 10px;
-    }
-
-    .table tbody td {
-        padding: 10px;
-        font-size: 14px;
-        text-align: center;
-    }
-
-    /* NF (Not Found) status */
-    .table tbody td[data-status="NF"] {
-        background-color: #dcdcdc;
-        color: black;
-    }
-
-    /* OFF status */
-    .table tbody td[data-status="OFF"] {
-        background-color: #27ae60;
-        color: white;
-    }
-
-    /* L status (Leave) */
-    .table tbody td[data-status="L"] {
-        background-color: #f39c12;
-        color: white;
-    }
-
-    /* Form styling */
-    form .form-control {
-        height: 40px;
-    }
-
-    form .btn-block {
-        height: 40px;
-        line-height: 20px;
-    }
-
-    #tickmark {
-        margin-top: 30px;
-    }
-
-    #tickmark1 {
-        margin-top: 25px;
-    }
-</style>
-
 <body class="sb-nav-fixed">
     <?php include APPPATH . 'views/include/header.php'; ?>
     <div id="layoutSidenav">
@@ -99,6 +37,18 @@
                             ?>
                         </div>
 
+                        <div class="col-md-3">
+                            <label for="user">Select User</label>
+                            <select name="user_id" class="form-control">
+                                <option value="">Select User</option>
+                                <?php foreach ($users_list as $user): ?>
+                                    <option value="<?php echo $user['user_id']; ?>" <?php echo ($user['user_id'] == $user_id) ? 'selected' : ''; ?>>
+                                        <?php echo $user['user_id'] . " " . $user['username']; ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
                         <div class="col-md-3" id="tickmark">
                             <label for="show_only_present">Show Employees with attendance</label>
                             <input type="checkbox" name="show_only_present" id="show_only_present" value="1" <?php echo $show_only_present ? 'checked' : ''; ?>>
@@ -110,45 +60,69 @@
                         </div>
                     </div>
 
-
-
                     <?php echo form_close(); ?>
 
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
+                    <div class="attendance-calendar">
+                        <table>
                             <thead>
                                 <tr>
-                                    <th>Employee ID</th>
-                                    <th>Employee Name</th>
-                                    <?php
-                                    $num_days = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-                                    for ($i = 1; $i <= $num_days; $i++): ?>
-                                        <th><?php echo sprintf('%02d', $i); ?></th>
-                                    <?php endfor; ?>
+                                    <th>Sun</th>
+                                    <th>Mon</th>
+                                    <th>Tue</th>
+                                    <th>Wed</th>
+                                    <th>Thu</th>
+                                    <th>Fri</th>
+                                    <th>Sat</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($users as $user): ?>
-                                    <tr>
-                                        <td><?php echo $user['user_id']; ?></td>
-                                        <td><?php echo $user['username']; ?></td>
-                                        <?php
-                                        for ($i = 1; $i <= $num_days; $i++) {
-                                            $date = sprintf('%s-%s-%02d', $year, $month, $i);
-                                            if (isset($attendance_data[$user['user_id']][$date])) {
-                                                $status = $attendance_data[$user['user_id']][$date]['status'];
-                                                $working_hours = $attendance_data[$user['user_id']][$date]['working_hours'];
-                                                echo "<td data-status='" . htmlspecialchars($status) . "'>" .
-                                                    htmlspecialchars($status) . "<br>" .
-                                                    htmlspecialchars($working_hours) .
-                                                    "</td>";
-                                            } else {
-                                                echo "<td data-status='NF'>NF<br>N/A</td>";
+                                <?php
+                                $num_days = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+                                $first_day = date('w', mktime(0, 0, 0, $month, 1, $year));
+
+                                // Print the days of the month
+                                $row = 0;
+                                for ($i = 1; $i <= $num_days + $first_day; $i++) {
+                                    if (($i - 1) % 7 == 0) {
+                                        echo "<tr>";
+                                    }
+
+                                    if ($i <= $first_day) {
+                                        echo "<td></td>";
+                                    } else {
+                                        $date = $i - $first_day;
+                                        $day_of_week = ($i - 1) % 7;
+                                        $cell_class = ($day_of_week == 0 || $day_of_week == 6) ? 'status-weekend' : '';
+
+                                        echo "<td>";
+                                        echo "<div class='date'>" . $date . "</div>";
+
+                                        // Print the attendance data for each user
+                                        foreach ($users as $user) {
+                                            $attendance_date = sprintf('%s-%s-%02d', $year, $month, $date);
+                                            if ($user['user_id'] == $user_id) {
+                                                if (isset($attendance_data[$user['user_id']][$attendance_date])) {
+                                                    $status = $attendance_data[$user['user_id']][$attendance_date]['status'];
+                                                    $working_hours = $attendance_data[$user['user_id']][$attendance_date]['working_hours'];
+                                                    if (!$show_only_present || $status !== 'NF') {
+                                                        echo "<div class='attendance-status " . $cell_class . " status-" . strtolower($status) . "'>";
+                                                        echo $status . "<br>" . $working_hours;
+                                                        echo "</div>";
+                                                    }
+                                                } else {
+                                                    echo "<div class='attendance-status " . $cell_class . " status-nf'>NF<br>N/A</div>";
+                                                }
                                             }
                                         }
-                                        ?>
-                                    </tr>
-                                <?php endforeach; ?>
+                                        echo "</td>";
+                                    }
+
+                                    // Start a new row after the 7th day (Saturday)
+                                    if (($i - 1) % 7 == 6) {
+                                        echo "</tr>";
+                                    }
+                                }
+                                ?>
                             </tbody>
                         </table>
                     </div>
@@ -167,4 +141,122 @@
             });
         });
     </script>
+
+    <style>
+        /* Container styling */
+        .container {
+            margin: 20px;
+        }
+
+        /* Table styling */
+        .table {
+            border-collapse: collapse;
+            width: 100%;
+            text-align: center;
+        }
+
+        .table thead th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px;
+        }
+
+        .attendance-calendar .status-weekend {
+            background-color: #f5d76e;
+            color: #333;
+        }
+
+        .table tbody td {
+            padding: 10px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* NF (Not Found) status */
+        .table tbody td[data-status="NF"] {
+            background-color: #dcdcdc;
+            color: black;
+        }
+
+        /* OFF status */
+        .table tbody td[data-status="OFF"] {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        /* L status (Leave) */
+        .table tbody td[data-status="L"] {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        /* Form styling */
+        form .form-control {
+            height: 40px;
+        }
+
+        form .btn-block {
+            height: 40px;
+            line-height: 20px;
+        }
+
+        #tickmark {
+            margin-top: 30px;
+        }
+
+        #tickmark1 {
+            margin-top: 25px;
+        }
+
+        .attendance-calendar {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .attendance-calendar table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .attendance-calendar th,
+        .attendance-calendar td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        .attendance-calendar th {
+            background-color: #f2f2f2;
+        }
+
+        .attendance-calendar .date {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .attendance-calendar .attendance-status {
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 12px;
+            line-height: 1.2;
+        }
+
+        .attendance-calendar .status-present {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .attendance-calendar .status-absent {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .attendance-calendar .status-nf {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+    </style>
 </body>

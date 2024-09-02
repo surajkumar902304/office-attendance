@@ -48,7 +48,7 @@ class Attendance_model extends CI_Model
 
 // attendance report page
 
-public function get_users_with_attendance($year, $month, $show_only_present = false)
+public function get_users_with_attendance($year, $month, $show_only_present = false, $user_id = null)
 {
     $this->db->select('users.user_id, users.username, attendance.date, attendance.status, attendance.check_in, attendance.check_out');
     $this->db->from('users');
@@ -58,7 +58,11 @@ public function get_users_with_attendance($year, $month, $show_only_present = fa
         $this->db->where('attendance.status IS NOT NULL');
     }
     
+    
     $this->db->order_by('users.user_id, attendance.date');
+    if ($user_id) {
+        $this->db->where('users.user_id', $user_id); // This line is causing the error
+    }
     
     $query = $this->db->get();
     $results = $query->result_array();

@@ -5,6 +5,9 @@ class Employee extends CI_Controller {
 
     public function __construct() {
         parent::__construct();
+        if (!$this->session->userdata('user_id')) {
+            redirect('Login');
+        }
         $this->load->model('Employee_model');
         $this->load->library('form_validation');
     }

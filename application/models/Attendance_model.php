@@ -205,6 +205,7 @@ public function punch_out($user_id) {
     return $this->db->update('attendance', $data);
 }
 
+// already attendance mark
 public function is_attadence_mark($user_id){
     $today = date('Y-m-d');
     $this->db->where('user_id', $user_id);

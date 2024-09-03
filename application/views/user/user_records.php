@@ -12,7 +12,7 @@
                     <div class="card mb-4">
                         <div class="card-header">
                             <i class="fas fa-table me-1"></i>
-                            User Details
+                            Employees Details
                         </div>
 
 
@@ -21,7 +21,7 @@
                             <table id="datatablesSimple">
                                 <thead>
                                     <tr>
-                                        <th>Sr.No</th>
+                                        <th>User ID</th>
                                         <th>Username</th>
                                         <th>Email</th>
                                         <th>Role</th>
@@ -33,7 +33,7 @@
                                     <?php $i = 1;
                                     foreach ($users as $user): ?>
                                         <tr>
-                                            <td><?php echo $i++; ?></td>
+                                            <td><?php echo $user['user_id']; ?></td>
                                             <td><?php echo $user['username']; ?></td>
                                             <td><?php echo $user['email']; ?></td>
                                             <td><?php echo $user['role_name']; ?></td>

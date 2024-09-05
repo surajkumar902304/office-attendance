@@ -29,6 +29,7 @@
             height: auto !important;
         }
     </style>
+    
 </head>
 
 <body class="sb-nav-fixed">

@@ -21,6 +21,7 @@
                             <table id="datatablesSimple">
                                 <thead>
                                     <tr>
+                                        <th>Sr no.</th>
                                         <th>User ID</th>
                                         <th>Username</th>
                                         <th>Email</th>
@@ -33,6 +34,7 @@
                                     <?php $i = 1;
                                     foreach ($users as $user): ?>
                                         <tr>
+                                            <td><?php echo $i++; ?></td>
                                             <td><?php echo $user['user_id']; ?></td>
                                             <td><?php echo $user['username']; ?></td>
                                             <td><?php echo $user['email']; ?></td>

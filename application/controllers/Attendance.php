@@ -88,9 +88,9 @@ class Attendance extends CI_Controller
         }
 
 
-        // Convert check_in and check_out to datetime format
-        $formatted_check_in = date('Y-m-d H:i:s', strtotime($check_in));
-        $formatted_check_out = date('Y-m-d H:i:s', strtotime($check_out));
+        // Convert check_in and check_out to datetime format or set to null if empty
+        $formatted_check_in = !empty($check_in) ? date('Y-m-d H:i:s', strtotime($check_in)) : null;
+        $formatted_check_out = !empty($check_out) ? date('Y-m-d H:i:s', strtotime($check_out)) : null;
         // echo $user_id.$status.$date.$check_in.$check_out.$formatted_check_in.$formatted_check_out;
         // die();
         $attendance_data = array(
@@ -125,7 +125,7 @@ class Attendance extends CI_Controller
         // Fetch all users for the dropdown
         $users_list = $this->User_model->get_all_users(); // Fetch all users, modify this to your method
 
-        
+
         $data = $this->Attendance_model->get_users_with_attendance($year, $month, $show_only_present, $user_id);
 
         $data['show_only_present'] = $show_only_present;

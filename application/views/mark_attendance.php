@@ -148,12 +148,12 @@
                     </div>
                     <div class="form-group">
                         <label for="check_in">Check-in Time</label>
-                        <input type="time" name="check_in" required>
+                        <input type="time" name="check_in">
                     </div>
 
                     <div class="form-group">
                         <label for="check_out">Check-out Time</label>
-                        <input type="time" name="check_out" required>
+                        <input type="time" name="check_out">
                     </div>
 
                     <button type="submit">Mark Attendance</button>

@@ -40,7 +40,7 @@ class User_model extends CI_Model
         $this->db->select('users.*, roles.role_name');
         $this->db->from('users');
         $this->db->join('roles', 'roles.role_id = users.role_id', 'left'); // Perform a left join on role_id
-        $this->db->where('users.role_id', 3); // Filter users with role_id = 3
+        $this->db->where('users.role_id !=', 1); 
         
         $query = $this->db->get();
         return $query->result_array(); // Return as an associative array

@@ -23,7 +23,7 @@ class Attendance_model extends CI_Model
         
         // Filter to exclude employees who have marked attendance for today
         $this->db->where('a.user_id IS NULL');
-        $this->db->where('u.role_id = 3');
+        $this->db->where('role_id !=', 1); 
         $this->db->where('u.status = 1');
 
         

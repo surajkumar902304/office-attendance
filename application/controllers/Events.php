@@ -13,12 +13,25 @@ class Events extends CI_Controller {
         $this->load->library('form_validation');
     }
 
+    private function check_admin_access() {
+        if ($this->session->userdata('role_id') != 1) {
+            if ($this->input->is_ajax_request()) {
+                echo json_encode(['success' => false, 'message' => 'Access denied']);
+                exit;
+            } else {
+                show_error('Access denied', 403);
+            }
+        }
+    }
+
     public function index() {
-        $data['events'] = $this->Event_model->get_all_events();
+        $role_id = $this->session->userdata('role_id');
+        $data['events'] = $this->Event_model->get_all_events($role_id);
         $this->load->view('events/events_view', $data);
     }
 
     public function add() {
+        $this->check_admin_access();
         $this->form_validation->set_rules('title', 'Title', 'required');
         $this->form_validation->set_rules('date', 'Date', 'required');
 
@@ -48,6 +61,7 @@ class Events extends CI_Controller {
     }
 
     public function edit($id) {
+        $this->check_admin_access();
         $this->form_validation->set_rules('title', 'Title', 'required');
         $this->form_validation->set_rules('date', 'Date', 'required');
 
@@ -78,6 +92,7 @@ class Events extends CI_Controller {
     }
 
     public function delete($id) {
+        $this->check_admin_access();
         $result = $this->Event_model->delete_event($id);
         if ($result) {
             if ($this->input->is_ajax_request()) {
@@ -95,8 +110,5 @@ class Events extends CI_Controller {
         }
     }
 
-    public function get_events() {
-        $events = $this->Event_model->get_all_events();
-        echo json_encode($events);
-    }
+
 }

@@ -164,10 +164,7 @@
                                     ?>
                                 </tbody>
                             </table>
-                        </div>
-
-                        <!-- Display Totals Below the Calendar -->
-                        <div class="attendance-totals"><br>
+                            <div class="attendance-totals"><br>
                             <h3>Monthly Summary</h3>
                             <ul>
                                 <li>Total Present Days: <?php echo $total_present; ?></li>
@@ -176,6 +173,10 @@
                                 <li>Total Login Hours: <?php echo $total_hours; ?></li>
                             </ul>
                         </div>
+                        </div>
+
+                        <!-- Display Totals Below the Calendar -->
+                        
                     </div>
                 </main>
 
@@ -196,7 +197,7 @@
         <style>
             /* Container styling */
             .container {
-                margin: 50px;
+                margin: auto;
             }
             #sat{
                 background-color: orchid;

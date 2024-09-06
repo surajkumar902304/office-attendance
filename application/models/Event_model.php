@@ -7,10 +7,19 @@ class Event_model extends CI_Model {
     }
 
     // Get all events
-    public function get_all_events() {
-        $query = $this->db->get('events');
+    public function get_all_events($role_id) {
+        if ($role_id == 1) {
+            // Role ID 1: Fetch all events (past, current, and future)
+            $query = $this->db->get('events');
+        } else {
+            // Role ID != 1: Fetch only current and future events
+            $this->db->where('start >=', date('Y-m-d'));  // Fetch events with a date greater than or equal to today
+            $query = $this->db->get('events');
+        }
+        
         return $query->result_array();
     }
+    
 
     // Get event by ID
     public function get_event($id) {

@@ -29,7 +29,7 @@
             height: auto !important;
         }
     </style>
-    
+
 </head>
 
 <body class="sb-nav-fixed">
@@ -79,6 +79,9 @@
             </div>
         </div>
     </div>
+    <script>
+    var userRoleId = <?php echo $this->session->userdata('role_id'); ?>;
+</script>
 
     <script>
         $(document).ready(function () {
@@ -88,65 +91,76 @@
                     center: 'title',
                     right: 'month,agendaWeek,agendaDay'
                 },
-                editable: true,
+                editable: userRoleId === 1,
                 eventLimit: true,
                 events: <?php echo json_encode($events); ?>,
                 dayClick: function (date) {
-                    openEventModal(null, date);
+                    if (userRoleId === 1) {
+                        openEventModal(null, date);
+                    }
                 },
                 eventClick: function (event) {
-                    openEventModal(event);
+                    if (userRoleId === 1) {
+                        openEventModal(event);
+                    }
                 },
                 eventRender: function (event, element) {
-                    element.find('.fc-content').append(
-                        "<span class='event-icons'>" +
-                        "<i class='fa fa-edit' onclick='editEvent(" + event.id + ")'></i> " +
-                        "<i class='fa fa-trash' onclick='deleteEvent(" + event.id + ")'></i>" +
-                        "</span>"
-                    );
+                    if (userRoleId === 1) {
+                        element.find('.fc-content').append(
+                            "<span class='event-icons'>" +
+                            "<i class='fa fa-edit' onclick='editEvent(" + event.id + ")'></i> " +
+                            "<i class='fa fa-trash' onclick='deleteEvent(" + event.id + ")'></i>" +
+                            "</span>"
+                        );
+                    }
                 }
             });
 
-            // Close button functionality
-            $('#closeModal, .close').click(function () {
-                $('#eventModal').modal('hide');
-            });
-
-            // Save Event button functionality
-            $('#saveEvent').click(function () {
-                var eventData = {
-                    id: $('#eventId').val(),
-                    title: $('#eventTitle').val(),
-                    date: $('#eventDate').val()  // Changed 'start' to 'date' to match your controller
-                };
-
-                var url = eventData.id ?
-                    '<?php echo base_url('events/edit/'); ?>' + eventData.id :
-                    '<?php echo base_url('events/add'); ?>';
-
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: eventData,
-                    success: function (response) {
-                        $('#eventModal').modal('hide');
-                        $('#calendar').fullCalendar('refetchEvents');
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error saving event:", error);
-                        alert("There was an error saving the event. Please try again.");
-                    }
+            // Only show modal controls for role_id 1
+            if (userRoleId === 1) {
+                // Close button functionality
+                $('#closeModal, .close').click(function () {
+                    $('#eventModal').modal('hide');
                 });
-            });
 
-            // Prevent form submission on enter key
-            $('#eventForm').on('submit', function (e) {
-                e.preventDefault();
-                $('#saveEvent').click();
-            });
+                // Save Event button functionality
+                $('#saveEvent').click(function () {
+                    var eventData = {
+                        id: $('#eventId').val(),
+                        title: $('#eventTitle').val(),
+                        date: $('#eventDate').val()
+                    };
+
+                    var url = eventData.id ?
+                        '<?php echo base_url('events/edit/'); ?>' + eventData.id :
+                        '<?php echo base_url('events/add'); ?>';
+
+                    $.ajax({
+                        url: url,
+                        type: 'POST',
+                        data: eventData,
+                        success: function (response) {
+                            $('#eventModal').modal('hide');
+                            $('#calendar').fullCalendar('refetchEvents');
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Error saving event:", error);
+                            alert("There was an error saving the event. Please try again.");
+                        }
+                    });
+                });
+
+                // Prevent form submission on enter key
+                $('#eventForm').on('submit', function (e) {
+                    e.preventDefault();
+                    $('#saveEvent').click();
+                });
+            }
         });
 
         function openEventModal(event, date) {
+            if (userRoleId !== 1) return;
+
             if (event) {
                 $('#eventId').val(event.id);
                 $('#eventTitle').val(event.title);
@@ -160,11 +174,15 @@
         }
 
         function editEvent(eventId) {
+            if (userRoleId !== 1) return;
+
             var event = $('#calendar').fullCalendar('clientEvents', eventId)[0];
             openEventModal(event);
         }
 
         function deleteEvent(eventId, event) {
+            if (userRoleId !== 1) return;
+
             if (event) {
                 event.stopPropagation();
             }

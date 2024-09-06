@@ -36,17 +36,8 @@ class Login extends CI_Controller
                 $this->session->set_userdata('email', $uresult->email);
                 $this->session->set_userdata('role_id', $uresult->role_id);
 
-                // Role-based redirection
-                if ($uresult->role_id == 1) {
-                    redirect(base_url('Dashboard'));
-                } else if ($uresult->role_id == 2) {
-                    redirect(base_url('Dashboard'));
-                } else if ($uresult->role_id == 3) {
-                    redirect(base_url('Dashboard'));
-                } else {
-                    // Default redirection if role doesn't match
-                    redirect(base_url('Dashboard'));
-                }
+                // Redirect to dashboard if login is successful
+                redirect(base_url('Dashboard'));
             } else {
                 $this->session->set_flashdata('msg', '<div class="alert alert-danger text-center">Email ID and Password are Invalid!</div>');
                 redirect('Login');
@@ -83,36 +74,32 @@ class Login extends CI_Controller
         $this->form_validation->set_rules('currentpassword', 'Current Password', 'required');
         $this->form_validation->set_rules('newpassword', 'New Password', 'required');
         $this->form_validation->set_rules('confirmpassword', 'Confirm Password', 'required|matches[newpassword]');
-        if ($this
-            ->form_validation->run())
-        {
-         $currentpassword=$this->input->post('currentpassword');  
-         $newpassword=$this->input->post('newpassword');
-         $user_id=$this->session->userdata('user_id');
-         
-         
-         
-         $currentpwd=$this->Login_Model->getcurrentpassword($user_id);
-         $dbcurrentpwd=$currentpwd->password;
-         
-         
-            if ($currentpassword == $dbcurrentpwd)
-            {
-             
-             $this->Login_Model->updatepassword($user_id, $newpassword);
-             $this->session->set_flashdata('success', 'Password changed successfully');
-             redirect('login/changepassword');
+        if (
+            $this
+                ->form_validation->run()
+        ) {
+            $currentpassword = $this->input->post('currentpassword');
+            $newpassword = $this->input->post('newpassword');
+            $user_id = $this->session->userdata('user_id');
+
+
+
+            $currentpwd = $this->Login_Model->getcurrentpassword($user_id);
+            $dbcurrentpwd = $currentpwd->password;
+
+
+            if ($currentpassword == $dbcurrentpwd) {
+
+                $this->Login_Model->updatepassword($user_id, $newpassword);
+                $this->session->set_flashdata('success', 'Password changed successfully');
+                redirect('login/changepassword');
+            } else {
+                $this->session->set_flashdata('error', 'Current Password is wrong');
+                redirect('login/changepassword');
             }
-            else
-            {
-             $this->session->set_flashdata('error', 'Current Password is wrong');
-             redirect('login/changepassword');
-            }
-         }
-      else
-      {
-       $this->load->view('employee/changepassword');
-      }
+        } else {
+            $this->load->view('employee/changepassword');
+        }
     }
 
 

@@ -8,6 +8,10 @@ class Employee extends CI_Controller {
         if (!$this->session->userdata('user_id')) {
             redirect('Login');
         }
+        // Ensure the user has an Admin role (role_id = 1)
+        if ($this->session->userdata('role_id') != 1) {
+            show_error('You do not have permission to access this page.', 403);
+        }
         $this->load->model('Employee_model');
         $this->load->library('form_validation');
     }
